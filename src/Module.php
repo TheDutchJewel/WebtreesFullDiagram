@@ -23,6 +23,8 @@ use Fisharebest\Webtrees\Module\ModuleChartInterface;
 use Fisharebest\Webtrees\Module\ModuleChartTrait;
 use Fisharebest\Webtrees\Module\ModuleCustomInterface;
 use Fisharebest\Webtrees\Module\ModuleCustomTrait;
+use Fisharebest\Webtrees\Module\ModuleTabInterface;
+use Fisharebest\Webtrees\Module\ModuleTabTrait;
 use Fisharebest\Webtrees\Registry;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
@@ -33,11 +35,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class Module extends AbstractModule implements ModuleChartInterface, ModuleCustomInterface, ModuleBlockInterface, RequestHandlerInterface
+class Module extends AbstractModule implements ModuleChartInterface, ModuleCustomInterface, ModuleBlockInterface, ModuleTabInterface, RequestHandlerInterface
 {
     use ModuleChartTrait;
     use ModuleCustomTrait;
     use ModuleBlockTrait;
+    use ModuleTabTrait;
 
     public const ROUTE_NAME = 'full-diagram';
     public const ROUTE_URL  = '/tree/{tree}/full-diagram/{xref}';
@@ -271,6 +274,57 @@ class Module extends AbstractModule implements ModuleChartInterface, ModuleCusto
             'ancestor_generations'   => $ancestorGenerations,
             'descendant_generations' => $descendantGenerations,
             'show_siblings'          => $showSiblings,
+        ]);
+    }
+
+    // ─── Tab interface ──────────────────────────────────────────────
+
+    public function tabTitle(): string
+    {
+        return I18N::translate('Full Diagram');
+    }
+
+    public function defaultTabOrder(): int
+    {
+        return 9;
+    }
+
+    public function hasTabContent(Individual $individual): bool
+    {
+        return true;
+    }
+
+    public function isGrayedOut(Individual $individual): bool
+    {
+        return false;
+    }
+
+    public function canLoadAjax(): bool
+    {
+        return true;
+    }
+
+    public function getTabContent(Individual $individual): string
+    {
+        $configuration = new Configuration(
+            self::DEFAULT_ANCESTOR_GENERATIONS,
+            self::DEFAULT_DESCENDANT_GENERATIONS,
+            true,
+        );
+
+        $dataFacade = new DataFacade();
+        $treeData   = $dataFacade->buildFullTree($individual, $configuration);
+
+        return view($this->name() . '::modules/full-diagram/tab', [
+            'module'                 => $this,
+            'individual'             => $individual,
+            'tree'                   => $individual->tree(),
+            'tree_data'              => json_encode($treeData, JSON_THROW_ON_ERROR),
+            'javascript_url'         => $this->assetUrl('js/full-diagram.min.js'),
+            'stylesheet_url'         => $this->assetUrl('css/full-diagram.css'),
+            'ancestor_generations'   => self::DEFAULT_ANCESTOR_GENERATIONS,
+            'descendant_generations' => self::DEFAULT_DESCENDANT_GENERATIONS,
+            'show_siblings'          => true,
         ]);
     }
 
