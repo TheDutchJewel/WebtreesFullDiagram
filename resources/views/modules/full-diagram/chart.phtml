@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Module\ModuleChartInterface;
+use Fisharebest\Webtrees\Tree;
+
+/**
+ * @var ModuleChartInterface $module
+ * @var Individual          $individual
+ * @var Tree                $tree
+ * @var string              $tree_data
+ * @var string              $javascript_url
+ * @var string              $stylesheet_url
+ */
+?>
+
+<link rel="stylesheet" href="<?= e($stylesheet_url) ?>">
+
+<div id="full-diagram-container" class="full-diagram-container wt-chart" data-tree-name="<?= e($tree->name()) ?>" style="width:100%;height:700px;">
+    <div class="full-diagram-chart"></div>
+</div>
+
+<script>
+    window.fullDiagramData = <?= $tree_data ?>;
+    window.fullDiagramBaseUrl = <?= json_encode(route($module::ROUTE_NAME, ['tree' => $tree->name(), 'xref' => '__XREF__']), JSON_THROW_ON_ERROR) ?>;
+</script>
+<script src="<?= e($javascript_url) ?>"></script>

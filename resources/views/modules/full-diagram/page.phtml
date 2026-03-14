@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\Http\RequestHandlers\IndividualPage;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Individual;
+use Fisharebest\Webtrees\Module\ModuleChartInterface;
+use Fisharebest\Webtrees\Tree;
+use FullDiagram\Configuration;
+
+/**
+ * @var string              $title
+ * @var Individual          $individual
+ * @var ModuleChartInterface $module
+ * @var Tree                $tree
+ * @var Configuration       $configuration
+ * @var string              $tree_data
+ * @var string              $javascript_url
+ * @var string              $stylesheet_url
+ * @var int                 $ancestor_generations
+ * @var int                 $descendant_generations
+ * @var bool                $show_siblings
+ * @var int                 $max_generations
+ * @var int                 $min_generations
+ */
+?>
+
+<?= view('components/breadcrumbs', [
+    'links' => [
+        route(IndividualPage::class, ['tree' => $tree->name(), 'xref' => $individual->xref()]) => $individual->fullName(),
+        $title,
+    ],
+]) ?>
+
+<h2 class="wt-page-title"><?= $title ?></h2>
+
+<form method="post" class="wt-page-options wt-page-options-chart d-print-none mb-3">
+    <?= csrf_field() ?>
+
+    <div class="row g-3 align-items-end">
+        <div class="col-auto">
+            <label for="ancestor_generations" class="form-label">
+                <?= I18N::translate('Ancestor generations') ?>
+            </label>
+            <input
+                type="range"
+                class="form-range"
+                id="ancestor_generations"
+                name="ancestor_generations"
+                min="<?= $min_generations ?>"
+                max="<?= $max_generations ?>"
+                value="<?= $ancestor_generations ?>"
+                oninput="document.getElementById('ancestor_gen_label').textContent = this.value"
+            >
+            <span id="ancestor_gen_label" class="badge bg-secondary"><?= $ancestor_generations ?></span>
+        </div>
+
+        <div class="col-auto">
+            <label for="descendant_generations" class="form-label">
+                <?= I18N::translate('Descendant generations') ?>
+            </label>
+            <input
+                type="range"
+                class="form-range"
+                id="descendant_generations"
+                name="descendant_generations"
+                min="<?= $min_generations ?>"
+                max="<?= $max_generations ?>"
+                value="<?= $descendant_generations ?>"
+                oninput="document.getElementById('descendant_gen_label').textContent = this.value"
+            >
+            <span id="descendant_gen_label" class="badge bg-secondary"><?= $descendant_generations ?></span>
+        </div>
+
+        <div class="col-auto">
+            <div class="form-check">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="show_siblings"
+                    name="show_siblings"
+                    value="1"
+                    <?= $show_siblings ? 'checked' : '' ?>
+                >
+                <label class="form-check-label" for="show_siblings">
+                    <?= I18N::translate('Show siblings') ?>
+                </label>
+            </div>
+        </div>
+
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">
+                <?= I18N::translate('View') ?>
+            </button>
+        </div>
+    </div>
+</form>
+
+<?= view($module->name() . '::modules/full-diagram/chart', [
+    'module'         => $module,
+    'individual'     => $individual,
+    'tree'           => $tree,
+    'tree_data'      => $tree_data,
+    'javascript_url' => $javascript_url,
+    'stylesheet_url' => $stylesheet_url,
+]) ?>
