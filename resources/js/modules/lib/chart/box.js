@@ -129,17 +129,22 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
     if (data.hasMoreAncestors) {
         const ig = g.append("g").attr("class", "more-ancestors-indicator");
 
-        // Positioning: top-right of card, protruding above
-        const bw = 10;  // mini box width
-        const bh = 7;   // mini box height
-        const gap = 4;   // gap between boxes
-        const cx = w - 25; // center X of the indicator
-        const topY = -14;  // top of mini boxes (above card)
-
+        const bw = 10, bh = 7, gap = 4;
+        const cx = w - 25;
+        const topY = -14;
         const leftX = cx - gap / 2 - bw;
         const rightX = cx + gap / 2;
+        const barY = topY + bh;
 
-        // Two small rectangles (parents)
+        // Lines first (behind boxes)
+        ig.append("line")
+            .attr("x1", leftX + bw / 2).attr("y1", barY)
+            .attr("x2", rightX + bw / 2).attr("y2", barY);
+        ig.append("line")
+            .attr("x1", cx).attr("y1", barY)
+            .attr("x2", cx).attr("y2", 0);
+
+        // Boxes on top
         ig.append("rect")
             .attr("x", leftX).attr("y", topY)
             .attr("width", bw).attr("height", bh)
@@ -148,17 +153,36 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
             .attr("x", rightX).attr("y", topY)
             .attr("width", bw).attr("height", bh)
             .attr("rx", 2).attr("ry", 2);
+    }
 
-        // Horizontal bar connecting the two boxes at their bottom center
-        const barY = topY + bh;
+    // "More descendants" indicator — two small child boxes at bottom-right
+    if (data.hasMoreDescendants) {
+        const ig = g.append("g").attr("class", "more-descendants-indicator");
+
+        const bw = 10, bh = 7, gap = 4;
+        const cx = w - 25;
+        const boxTop = h + 7; // below card bottom edge
+        const leftX = cx - gap / 2 - bw;
+        const rightX = cx + gap / 2;
+        const barY = boxTop; // bar at top of boxes
+
+        // Lines first (behind boxes)
+        ig.append("line")
+            .attr("x1", cx).attr("y1", h)
+            .attr("x2", cx).attr("y2", barY);
         ig.append("line")
             .attr("x1", leftX + bw / 2).attr("y1", barY)
             .attr("x2", rightX + bw / 2).attr("y2", barY);
 
-        // Vertical line from bar center down to card top edge
-        ig.append("line")
-            .attr("x1", cx).attr("y1", barY)
-            .attr("x2", cx).attr("y2", 0);
+        // Boxes on top
+        ig.append("rect")
+            .attr("x", leftX).attr("y", boxTop)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 2).attr("ry", 2);
+        ig.append("rect")
+            .attr("x", rightX).attr("y", boxTop)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 2).attr("ry", 2);
     }
 
     // Attach hover bio card
