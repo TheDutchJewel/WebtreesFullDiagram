@@ -317,6 +317,47 @@ function extractPositions(elkResult, builder, config) {
         }
     }
 
+    // ── Step 2b: Fix overlapping spouses (childless couples) ──
+    // After Y-snapping, spouses without shared children may land on top of
+    // each other. Move the overlapping spouse to the nearest row edge.
+    const minGap = config.cardWidth + config.horizontalSpacing;
+
+    for (const [id, person] of builder.personById) {
+        const spouseIds = (person.rels.spouses || []).filter((sid) =>
+            builder.personById.has(sid)
+        );
+        if (spouseIds.length === 0) continue;
+
+        const pos = posMap.get(id);
+        if (!pos) continue;
+
+        for (const sid of spouseIds) {
+            const spos = posMap.get(sid);
+            if (!spos) continue;
+
+            // Check if they overlap (same row after Y-snap, too close on X)
+            if (Math.abs(pos.y - spos.y) > 1) continue;
+            if (Math.abs(pos.x - spos.x) >= minGap) continue;
+
+            // Find the row extents (min/max X of all persons in this gen)
+            const gen = builder.generations.get(sid) ?? 0;
+            const rowIds = genGroups.get(gen) || [];
+            const rowXs = rowIds
+                .map((rid) => posMap.get(rid)?.x)
+                .filter((x) => x !== undefined);
+            const rowMin = Math.min(...rowXs);
+            const rowMax = Math.max(...rowXs);
+
+            // Place at left or right edge, whichever is closer to current pos
+            const leftTarget = rowMin - minGap;
+            const rightTarget = rowMax + minGap;
+            const distLeft = Math.abs(spos.x - leftTarget);
+            const distRight = Math.abs(spos.x - rightTarget);
+
+            spos.x = distLeft <= distRight ? leftTarget : rightTarget;
+        }
+    }
+
     // ── Step 3: Build edge maps ──
     const incomingToUnion = new Map();
     const outgoingFromUnion = new Map();
