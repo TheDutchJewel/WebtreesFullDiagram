@@ -1,7 +1,7 @@
 {
     "name": "alex/webtrees-full-diagram",
     "description": "Full family diagram chart module for webtrees — shows ancestors, descendants, and siblings in a single interactive SVG diagram.",
-    "license": "GPL-3.0-or-later",
+    "license": "AGPL-3.0-or-later",
     "type": "webtrees-module",
     "keywords": [
         "webtrees",

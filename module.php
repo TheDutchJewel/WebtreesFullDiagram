@@ -3,7 +3,7 @@
 /**
  * Full Diagram module for webtrees.
  *
- * @license GPL-3.0-or-later
+ * @license AGPL-3.0-or-later
  */
 
 declare(strict_types=1);
