@@ -101,6 +101,17 @@ function addFact(container, label, value, place) {
     row.append("span").attr("class", "bio-fact-value").text(display);
 }
 
+/**
+ * Try to parse a webtrees display date string into a Date object.
+ * Handles formats like "15 March 1985", "March 1985", "1985".
+ */
+function parseDate(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) return d;
+    return null;
+}
+
 function computeAge(data) {
     if (!data.birthYear) return "";
 
@@ -108,18 +119,41 @@ function computeAge(data) {
     if (isNaN(birthYear)) return "";
 
     if (data.isDead) {
+        // Try precise calculation from full dates
+        const birthDate = parseDate(data.birthDate);
+        const deathDate = parseDate(data.deathDate);
+        if (birthDate && deathDate) {
+            let age = deathDate.getFullYear() - birthDate.getFullYear();
+            const monthDiff = deathDate.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && deathDate.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return t("Died at age %s", age);
+        }
+        // Fallback to year-based
         if (data.deathYear) {
             const deathYear = parseInt(data.deathYear, 10);
             if (!isNaN(deathYear)) {
-                const age = deathYear - birthYear;
-                return t("Died at age %s", age);
+                return t("Died at age %s", deathYear - birthYear);
             }
         }
         return t("Deceased");
     }
 
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - birthYear;
+    // Living person — try precise calculation
+    const birthDate = parseDate(data.birthDate);
+    const now = new Date();
+    if (birthDate) {
+        let age = now.getFullYear() - birthDate.getFullYear();
+        const monthDiff = now.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return t("Age ~%s", age);
+    }
+
+    // Fallback to year-based approximation
+    const age = now.getFullYear() - birthYear;
     return t("Age ~%s", age);
 }
 

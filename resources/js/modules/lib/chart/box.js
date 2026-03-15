@@ -35,6 +35,78 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
             onClick({ id: person.id, data });
         });
 
+    // "More ancestors" indicator — drawn first so card renders on top
+    if (data.hasMoreAncestors) {
+        const ig = g.append("g")
+            .attr("class", "more-ancestors-indicator")
+            .style("cursor", "pointer")
+            .on("click", (event) => {
+                event.stopPropagation();
+                onClick({ id: person.id, data });
+            });
+
+        const bw = 10, bh = 7, gap = 4;
+        const cx = w - 25;
+        const topY = -14;
+        const leftX = cx - gap / 2 - bw;
+        const rightX = cx + gap / 2;
+        const barY = topY + bh;
+
+        // Lines first (behind boxes)
+        ig.append("line")
+            .attr("x1", leftX + bw / 2).attr("y1", barY)
+            .attr("x2", rightX + bw / 2).attr("y2", barY);
+        ig.append("line")
+            .attr("x1", cx).attr("y1", barY)
+            .attr("x2", cx).attr("y2", 0);
+
+        // Boxes on top of lines
+        ig.append("rect")
+            .attr("x", leftX).attr("y", topY)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 1).attr("ry", 1);
+        ig.append("rect")
+            .attr("x", rightX).attr("y", topY)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 1).attr("ry", 1);
+    }
+
+    // "More descendants" indicator — drawn first so card renders on top
+    if (data.hasMoreDescendants) {
+        const ig = g.append("g")
+            .attr("class", "more-descendants-indicator")
+            .style("cursor", "pointer")
+            .on("click", (event) => {
+                event.stopPropagation();
+                onClick({ id: person.id, data });
+            });
+
+        const bw = 10, bh = 7, gap = 4;
+        const cx = w - 25;
+        const boxTop = h + 7;
+        const leftX = cx - gap / 2 - bw;
+        const rightX = cx + gap / 2;
+        const barY = boxTop;
+
+        // Lines first (behind boxes)
+        ig.append("line")
+            .attr("x1", cx).attr("y1", h)
+            .attr("x2", cx).attr("y2", barY);
+        ig.append("line")
+            .attr("x1", leftX + bw / 2).attr("y1", barY)
+            .attr("x2", rightX + bw / 2).attr("y2", barY);
+
+        // Boxes on top of lines
+        ig.append("rect")
+            .attr("x", leftX).attr("y", boxTop)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 1).attr("ry", 1);
+        ig.append("rect")
+            .attr("x", rightX).attr("y", boxTop)
+            .attr("width", bw).attr("height", bh)
+            .attr("rx", 1).attr("ry", 1);
+    }
+
     // Card background
     g.append("rect")
         .attr("width", w)
@@ -123,66 +195,6 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
             .attr("x", textXOffset)
             .attr("y", h / 2 + 20)
             .text(truncateText(subtitle, maxTextWidth));
-    }
-
-    // "More ancestors" indicator — two small parent boxes at top-right
-    if (data.hasMoreAncestors) {
-        const ig = g.append("g").attr("class", "more-ancestors-indicator");
-
-        const bw = 10, bh = 7, gap = 4;
-        const cx = w - 25;
-        const topY = -14;
-        const leftX = cx - gap / 2 - bw;
-        const rightX = cx + gap / 2;
-        const barY = topY + bh;
-
-        // Lines first (behind boxes)
-        ig.append("line")
-            .attr("x1", leftX + bw / 2).attr("y1", barY)
-            .attr("x2", rightX + bw / 2).attr("y2", barY);
-        ig.append("line")
-            .attr("x1", cx).attr("y1", barY)
-            .attr("x2", cx).attr("y2", 0);
-
-        // Boxes on top
-        ig.append("rect")
-            .attr("x", leftX).attr("y", topY)
-            .attr("width", bw).attr("height", bh)
-            .attr("rx", 2).attr("ry", 2);
-        ig.append("rect")
-            .attr("x", rightX).attr("y", topY)
-            .attr("width", bw).attr("height", bh)
-            .attr("rx", 2).attr("ry", 2);
-    }
-
-    // "More descendants" indicator — two small child boxes at bottom-right
-    if (data.hasMoreDescendants) {
-        const ig = g.append("g").attr("class", "more-descendants-indicator");
-
-        const bw = 10, bh = 7, gap = 4;
-        const cx = w - 25;
-        const boxTop = h + 7; // below card bottom edge
-        const leftX = cx - gap / 2 - bw;
-        const rightX = cx + gap / 2;
-        const barY = boxTop; // bar at top of boxes
-
-        // Lines first (behind boxes)
-        ig.append("line")
-            .attr("x1", cx).attr("y1", h)
-            .attr("x2", cx).attr("y2", barY);
-        ig.append("line")
-            .attr("x1", leftX + bw / 2).attr("y1", barY)
-            .attr("x2", rightX + bw / 2).attr("y2", barY);
-
-        // Boxes on top
-        ig.append("rect")
-            .attr("x", leftX).attr("y", boxTop)
-            .attr("width", bw).attr("height", bh)
-            .attr("rx", 2).attr("ry", 2);
-        ig.append("rect")
-            .attr("x", rightX).attr("y", boxTop)
-            .attr("width", bw).attr("height", bh)
-            .attr("rx", 2).attr("ry", 2);
     }
 
     // Attach hover bio card
