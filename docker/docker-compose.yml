@@ -17,6 +17,7 @@ services:
       - webtrees_data:/var/www/webtrees/data
       - ..:/var/www/webtrees/modules_v4/full-diagram
       - /home/alex/.local/src/webtrees_bocken_theme/BockenTheme:/var/www/webtrees/modules_v4/BockenTheme
+      - /home/alex/.local/src/webtrees_family_navigator_graph:/var/www/webtrees/modules_v4/family-nav-graph
     depends_on:
       db:
         condition: service_healthy
