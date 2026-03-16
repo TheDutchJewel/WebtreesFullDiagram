@@ -9,6 +9,7 @@
 import { select } from "../d3.js";
 
 let activeTooltip = null;
+let activePersonId = null;
 let hideTimer = null;
 
 /** Get a translated string, with optional substitution. */
@@ -27,8 +28,15 @@ function t(key, ...args) {
  * @param {object} data - Person data
  * @param {SVGElement} cardElement - The SVG card group element
  * @param {string} containerSelector
+ * @param {Function} [onFocus] - Optional callback to focus this person in the diagram
+ * @param {string} [personId] - Person ID for the focus callback
  */
-export function showBioCard(data, cardElement, containerSelector) {
+export function showBioCard(data, cardElement, containerSelector, onFocus, personId) {
+    // Toggle: tapping the same card again dismisses the tooltip
+    if (activeTooltip && activePersonId === personId) {
+        hideTooltip();
+        return;
+    }
     hideTooltip();
 
     const container = select(containerSelector);
@@ -78,14 +86,48 @@ export function showBioCard(data, cardElement, containerSelector) {
     addFact(facts, t("Occupation"), data.occupation);
     addFact(facts, t("Residence"), data.residence);
 
-    // Link to profile
-    tooltip
-        .append("a")
-        .attr("href", data.url)
-        .attr("class", "bio-link")
-        .text(t("View profile") + " \u2192");
+    // Action buttons — top-right corner
+    const actions = tooltip.append("div").attr("class", "bio-actions");
+
+    // Focus in diagram button (navigates the chart to this person)
+    if (onFocus && personId) {
+        actions
+            .append("button")
+            .attr("type", "button")
+            .attr("class", "bio-action-btn bio-focus-btn")
+            .attr("title", t("Focus in diagram"))
+            .html(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<circle cx="11" cy="11" r="8"/>' +
+                '<line x1="21" y1="21" x2="16.65" y2="16.65"/>' +
+                '<line x1="11" y1="8" x2="11" y2="14"/>' +
+                '<line x1="8" y1="11" x2="14" y2="11"/>' +
+                '</svg>'
+            )
+            .on("click", () => {
+                hideTooltip();
+                onFocus({ id: personId, data });
+            });
+    }
+
+    // View profile button (goes to webtrees individual page)
+    if (data.url) {
+        actions
+            .append("a")
+            .attr("href", data.url)
+            .attr("class", "bio-action-btn bio-profile-btn")
+            .attr("title", t("View profile"))
+            .html(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>' +
+                '<polyline points="15 3 21 3 21 9"/>' +
+                '<line x1="10" y1="14" x2="21" y2="3"/>' +
+                '</svg>'
+            );
+    }
 
     activeTooltip = tooltip;
+    activePersonId = personId || null;
 }
 
 function addFact(container, label, value, place) {
@@ -169,6 +211,7 @@ export function hideTooltip() {
     if (activeTooltip) {
         activeTooltip.remove();
         activeTooltip = null;
+        activePersonId = null;
     }
 }
 
@@ -178,12 +221,14 @@ export function hideTooltip() {
  * @param {d3.Selection} cardGroup - The SVG <g> for the person card
  * @param {object} data - Person data
  * @param {string} containerSelector
+ * @param {Function} [onFocus] - Optional callback to focus this person in the diagram
+ * @param {string} [personId] - Person ID for the focus callback
  */
-export function attachHoverBioCard(cardGroup, data, containerSelector) {
+export function attachHoverBioCard(cardGroup, data, containerSelector, onFocus, personId) {
     cardGroup
         .on("mouseenter", function () {
             clearTimeout(hideTimer);
-            showBioCard(data, this, containerSelector);
+            showBioCard(data, this, containerSelector, onFocus, personId);
         })
         .on("mouseleave", () => {
             scheduleHide();

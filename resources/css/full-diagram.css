@@ -155,8 +155,8 @@
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     padding: 12px;
-    min-width: 220px;
-    max-width: 300px;
+    min-width: 245px;
+    max-width: 325px;
     font-size: 12px;
     color: #212529;
     pointer-events: auto;
@@ -180,12 +180,21 @@
 .bio-header-text {
     flex: 1;
     min-width: 0;
+    padding-right: 22px;
+}
+
+@media (pointer: coarse) {
+    .bio-header-text {
+        padding-right: 48px;
+    }
 }
 
 .bio-name {
     font-weight: 600;
     font-size: 14px;
     line-height: 1.2;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .bio-age {
@@ -220,18 +229,46 @@
     color: #6c757d;
 }
 
-.bio-link {
-    display: block;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid #eee;
-    color: #4a90d9;
-    text-decoration: none;
-    font-size: 11px;
+/* Action buttons — top-right corner */
+.bio-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
 }
 
-.bio-link:hover {
-    text-decoration: underline;
+.bio-action-btn,
+.bio-action-btn:visited {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: #f0f2f5;
+    color: #495057;
+    text-decoration: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.bio-action-btn:hover {
+    background: #4a90d9;
+    color: #fff;
+}
+
+/* Focus button: only visible on touch devices */
+.bio-focus-btn {
+    display: none;
+}
+
+@media (pointer: coarse) {
+    .bio-focus-btn {
+        display: flex;
+    }
 }
 
 /* ── Zoom controls ── */

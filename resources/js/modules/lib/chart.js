@@ -35,6 +35,7 @@ export default class Chart {
         this.zoomBehavior = zoomBehavior;
 
         svg.on("zoom.tooltip", () => hideTooltip());
+        svg.on("click.tooltip", () => hideTooltip());
         createZoomControls(ctr, svg, zoomBehavior);
 
         const canvas = getCanvas(svg);
@@ -46,12 +47,16 @@ export default class Chart {
             this.config
         );
 
-        // Click handler
+        // Click handler — root person goes to profile, others reload diagram
         const baseUrl = this.baseUrl;
+        const mainId = this.data.mainId;
         const onNodeClick = (data) => {
             hideTooltip();
-            const url = baseUrl.replace("__XREF__", data.id);
-            window.location.href = url;
+            if (data.id === mainId && data.url) {
+                window.location.href = data.url;
+            } else {
+                window.location.href = baseUrl.replace("__XREF__", data.id);
+            }
         };
 
         // Draw connections first (behind cards)

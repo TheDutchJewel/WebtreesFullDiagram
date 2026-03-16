@@ -5,7 +5,9 @@
  * Profile picture displayed if available, otherwise a gendered silhouette.
  * Hover shows a rich bio card with dates, places, occupation, age.
  */
-import { attachHoverBioCard } from "./overlay.js";
+import { attachHoverBioCard, showBioCard, hideTooltip } from "./overlay.js";
+
+const isTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
 /**
  * Render a person card as an SVG group.
@@ -29,11 +31,31 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
         .append("g")
         .attr("class", `person-card ${sexClass} ${rootClass}`.trim())
         .attr("transform", `translate(${person.x - w / 2}, ${person.y - h / 2})`)
-        .style("cursor", "pointer")
-        .on("click", (event) => {
+        .style("cursor", "pointer");
+
+    // Touch: single tap → bio card, double tap → navigate diagram
+    // Desktop: single click → navigate diagram (hover handles bio card)
+    if (isTouch) {
+        let lastTap = 0;
+        g.on("click", function (event) {
+            event.stopPropagation();
+            const now = Date.now();
+            if (now - lastTap < 350) {
+                // Double tap → navigate
+                hideTooltip();
+                onClick({ id: person.id, data });
+            } else {
+                // Single tap → show bio card
+                showBioCard(data, this, containerSelector, onClick, person.id);
+            }
+            lastTap = now;
+        });
+    } else {
+        g.on("click", (event) => {
             event.stopPropagation();
             onClick({ id: person.id, data });
         });
+    }
 
     // "More ancestors" indicator — drawn first so card renders on top
     if (data.hasMoreAncestors) {
@@ -197,9 +219,9 @@ export function renderPersonCard(parent, person, config, onClick, containerSelec
             .text(truncateText(subtitle, maxTextWidth));
     }
 
-    // Attach hover bio card
-    if (containerSelector) {
-        attachHoverBioCard(g, data, containerSelector);
+    // Attach hover bio card (desktop only — touch uses tap)
+    if (containerSelector && !isTouch) {
+        attachHoverBioCard(g, data, containerSelector, onClick, person.id);
     }
 
     return g;
